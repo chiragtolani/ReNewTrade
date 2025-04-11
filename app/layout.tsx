@@ -9,5 +9,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 import './globals.css'
 
 export const metadata = {
-      generator: 'v0.dev'
-    };
+  title: 'ReNewTrade - Peer to Peer Energy Trading Platform',
+  description: 'A modern peer-to-peer energy trading platform built with Next.js, React, and Three.js.',
+  generator: 'v0.dev'
+};
