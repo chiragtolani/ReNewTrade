@@ -2,6 +2,8 @@
 
 A modern peer-to-peer energy trading platform built with Next.js, React, and Three.js.
 
+[Live Demo](https://v0-p2-p-renewable-energy-project-25.vercel.app)
+
 ## Overview
 
 ReNewTrade is a decentralized platform that enables users to trade renewable energy directly with each other. The platform provides a user-friendly interface for energy producers and consumers to connect, trade, and manage their energy transactions.
