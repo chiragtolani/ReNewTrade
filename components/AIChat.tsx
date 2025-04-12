@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useRef, useEffect } from 'react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { Button } from "@/components/ui/button";
