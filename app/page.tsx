@@ -1,7 +1,14 @@
-"use client"
+import dynamic from "next/dynamic"
+import ClientWrapper from "@/components/client-wrapper"
 
-import Dashboard from "@/components/dashboard"
+const Dashboard = dynamic(() => import("@/components/dashboard"), {
+  ssr: false
+})
 
 export default function Home() {
-  return <Dashboard activeTab="overview" />
+  return (
+    <ClientWrapper>
+      <Dashboard activeTab="overview" />
+    </ClientWrapper>
+  )
 }
