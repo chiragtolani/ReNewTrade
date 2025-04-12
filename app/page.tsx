@@ -1,14 +1,10 @@
-import dynamic from "next/dynamic"
 import ClientWrapper from "@/components/client-wrapper"
-
-const Dashboard = dynamic(() => import("@/components/dashboard"), {
-  ssr: false
-})
+import ClientDashboard from "@/components/client-dashboard"
 
 export default function Home() {
   return (
     <ClientWrapper>
-      <Dashboard activeTab="overview" />
+      <ClientDashboard activeTab="overview" />
     </ClientWrapper>
   )
 }
