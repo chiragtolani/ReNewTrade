@@ -4,104 +4,133 @@ import { useRef, useEffect } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { OrbitControls, Float, Environment } from "@react-three/drei"
 import { motion } from "framer-motion"
+import type { RootState } from '@react-three/fiber'
+import { Group, Mesh, Vector3 as ThreeVector3, Euler as ThreeEuler } from 'three'
 
-function WindTurbine({ position = [0, 0, 0], scale = 1, rotationSpeed = 1 }) {
-  const turbineRef = useRef()
-  const bladeRef = useRef()
+interface WindTurbineProps {
+  position: [number, number, number]
+  scale: number
+  rotationSpeed: number
+}
 
-  useFrame((state) => {
+interface SolarPanelProps {
+  position: [number, number, number]
+  scale: number
+  rotation: [number, number, number]
+}
+
+interface EarthProps {
+  position: [number, number, number]
+  scale: number
+}
+
+const WindTurbine: React.FC<WindTurbineProps> = ({ position, scale, rotationSpeed }) => {
+  const turbineRef = useRef<Group>(null)
+  const bladeRef = useRef<Mesh>(null)
+
+  useFrame(() => {
     if (bladeRef.current) {
-      bladeRef.current.rotation.z += 0.01 * rotationSpeed
+      bladeRef.current.rotation.z += rotationSpeed * 0.02
     }
   })
 
   return (
-    <group ref={turbineRef} position={position} scale={scale}>
-      {/* Tower */}
-      <mesh position={[0, 2, 0]}>
-        <cylinderGeometry args={[0.1, 0.15, 4, 16]} />
-        <meshStandardMaterial color="#e0e0e0" />
+    <group
+      ref={turbineRef}
+      position={new ThreeVector3(...position)}
+      scale={new ThreeVector3(scale, scale, scale)}
+    >
+      {/* Base */}
+      <mesh>
+        <cylinderGeometry args={[0.1, 0.2, 2]} />
+        <meshStandardMaterial color="#888888" />
       </mesh>
 
-      {/* Nacelle */}
-      <mesh position={[0, 4.1, 0]}>
-        <boxGeometry args={[0.4, 0.3, 0.3]} />
-        <meshStandardMaterial color="#d0d0d0" />
+      {/* Turbine head */}
+      <mesh position={new ThreeVector3(0, 1.2, 0)}>
+        <boxGeometry args={[0.3, 0.3, 0.3]} />
+        <meshStandardMaterial color="#666666" />
       </mesh>
 
       {/* Blades */}
-      <group ref={bladeRef} position={[0, 4.1, 0]}>
-        <mesh rotation={[0, 0, 0]}>
+      <group ref={bladeRef} position={new ThreeVector3(0, 1.2, 0)}>
+        <mesh rotation={new ThreeEuler(0, 0, 0)}>
           <boxGeometry args={[0.1, 1.5, 0.05]} />
-          <meshStandardMaterial color="white" />
+          <meshStandardMaterial color="#ffffff" />
         </mesh>
-        <mesh rotation={[0, 0, (Math.PI * 2) / 3]}>
+        <mesh rotation={new ThreeEuler(0, 0, Math.PI * (2/3))}>
           <boxGeometry args={[0.1, 1.5, 0.05]} />
-          <meshStandardMaterial color="white" />
+          <meshStandardMaterial color="#ffffff" />
         </mesh>
-        <mesh rotation={[0, 0, (Math.PI * 4) / 3]}>
+        <mesh rotation={new ThreeEuler(0, 0, Math.PI * (4/3))}>
           <boxGeometry args={[0.1, 1.5, 0.05]} />
-          <meshStandardMaterial color="white" />
+          <meshStandardMaterial color="#ffffff" />
         </mesh>
       </group>
     </group>
   )
 }
 
-function SolarPanel({ position = [0, 0, 0], scale = 1, rotation = [0, 0, 0] }) {
+const SolarPanel: React.FC<SolarPanelProps> = ({ position, scale, rotation }) => {
   return (
-    <group position={position} scale={scale} rotation={rotation}>
-      {/* Frame */}
-      <mesh position={[0, 0.05, 0]}>
-        <boxGeometry args={[1, 0.1, 1.5]} />
-        <meshStandardMaterial color="#555555" />
+    <group
+      position={new ThreeVector3(...position)}
+      scale={new ThreeVector3(scale, scale, scale)}
+      rotation={new ThreeEuler(...rotation)}
+    >
+      {/* Panel */}
+      <mesh>
+        <boxGeometry args={[2, 1, 0.1]} />
+        <meshStandardMaterial color="#1a365d" />
       </mesh>
 
-      {/* Panel */}
-      <mesh position={[0, 0.11, 0]} rotation={[0.1, 0, 0]}>
-        <boxGeometry args={[0.9, 0.05, 1.4]} />
-        <meshStandardMaterial color="#1a4c7c" metalness={0.8} roughness={0.2} />
+      {/* Stand */}
+      <mesh position={new ThreeVector3(0, -0.7, 0)}>
+        <cylinderGeometry args={[0.1, 0.1, 0.5]} />
+        <meshStandardMaterial color="#666666" />
+      </mesh>
+
+      {/* Base */}
+      <mesh position={new ThreeVector3(0, -1, 0)}>
+        <boxGeometry args={[0.5, 0.1, 0.5]} />
+        <meshStandardMaterial color="#888888" />
       </mesh>
     </group>
   )
 }
 
-function Earth({ position = [0, 0, 0], scale = 1 }) {
-  const earthRef = useRef()
+const Earth: React.FC<EarthProps> = ({ position, scale }) => {
+  const earthRef = useRef<Mesh>(null)
 
-  useFrame((state) => {
+  useFrame((_state: RootState) => {
     if (earthRef.current) {
       earthRef.current.rotation.y += 0.002
     }
   })
 
   return (
-    <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
-      <mesh ref={earthRef} position={position} scale={scale}>
-        <sphereGeometry args={[1, 32, 32]} />
-        <meshStandardMaterial color="#1d7caa" metalness={0.1} roughness={0.7} />
-
-        {/* Continents - simplified representation */}
-        <group>
-          <mesh position={[0.7, 0.5, 0.5]} scale={[0.3, 0.2, 0.1]}>
-            <sphereGeometry args={[1, 16, 16]} />
-            <meshStandardMaterial color="#2d9d3a" />
-          </mesh>
-          <mesh position={[-0.5, 0.3, 0.7]} scale={[0.4, 0.2, 0.2]}>
-            <sphereGeometry args={[1, 16, 16]} />
-            <meshStandardMaterial color="#2d9d3a" />
-          </mesh>
-          <mesh position={[0.2, -0.6, 0.6]} scale={[0.3, 0.3, 0.1]}>
-            <sphereGeometry args={[1, 16, 16]} />
-            <meshStandardMaterial color="#2d9d3a" />
-          </mesh>
-        </group>
+    <mesh
+      ref={earthRef}
+      position={new ThreeVector3(...position)}
+      scale={new ThreeVector3(scale, scale, scale)}
+    >
+      <sphereGeometry args={[1, 32, 32]} />
+      <meshStandardMaterial color="#4299e1" />
+      {/* Continents */}
+      <mesh>
+        <sphereGeometry args={[1.01, 32, 32]} />
+        <meshStandardMaterial
+          color="#48bb78"
+          transparent
+          opacity={0.8}
+          wireframe
+        />
       </mesh>
-    </Float>
+    </mesh>
   )
 }
 
-function Scene() {
+const Scene: React.FC = () => {
   const { camera } = useThree()
 
   useEffect(() => {
@@ -112,22 +141,22 @@ function Scene() {
   return (
     <>
       <ambientLight intensity={0.5} />
-      <directionalLight position={[10, 10, 5]} intensity={1} />
+      <directionalLight position={new ThreeVector3(10, 10, 5)} intensity={1} />
 
-      {/* Position Earth more to the left */}
       <Earth position={[-5, 2, 0]} scale={2} />
 
-      {/* Position wind turbines more to the left and center */}
       <WindTurbine position={[-8, -1, -2]} scale={0.7} rotationSpeed={1.2} />
       <WindTurbine position={[-6, -1, -3]} scale={0.6} rotationSpeed={0.8} />
       <WindTurbine position={[-3, -1, -2]} scale={0.8} rotationSpeed={1} />
 
-      {/* Position solar panels more to the left and center */}
       <SolarPanel position={[-7, -1, 1]} scale={0.8} rotation={[-0.1, 0.5, 0]} />
       <SolarPanel position={[-4, -1, 2]} scale={0.7} rotation={[-0.1, -0.3, 0]} />
       <SolarPanel position={[-2, -1, 3]} scale={0.9} rotation={[-0.1, 0.1, 0]} />
 
-      <mesh position={[0, -1.5, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh 
+        position={new ThreeVector3(0, -1.5, 0)} 
+        rotation={new ThreeEuler(-Math.PI / 2, 0, 0)}
+      >
         <planeGeometry args={[30, 30]} />
         <meshStandardMaterial color="#88c172" />
       </mesh>
@@ -135,7 +164,7 @@ function Scene() {
   )
 }
 
-export default function LoginAnimation() {
+const LoginAnimation: React.FC = () => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -150,7 +179,6 @@ export default function LoginAnimation() {
           enablePan={false}
           autoRotate
           autoRotateSpeed={0.5}
-          // Limit rotation to keep focus on the left side
           minAzimuthAngle={-Math.PI / 4}
           maxAzimuthAngle={Math.PI / 4}
         />
@@ -159,3 +187,5 @@ export default function LoginAnimation() {
     </motion.div>
   )
 }
+
+export default LoginAnimation
