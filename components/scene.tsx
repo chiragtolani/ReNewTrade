@@ -1,21 +1,10 @@
 "use client"
 
-import dynamic from "next/dynamic"
-import { Suspense } from "react"
-import { motion } from "framer-motion"
-
-// Dynamically import Three.js components
-const ThreeCanvas = dynamic(() => import("@react-three/fiber").then(mod => mod.Canvas), {
-  ssr: false
-})
-
-const OrbitControls = dynamic(() => import("@react-three/drei").then(mod => mod.OrbitControls), {
-  ssr: false
-})
-
-const Environment = dynamic(() => import("@react-three/drei").then(mod => mod.Environment), {
-  ssr: false
-})
+import { useRef, useEffect } from "react"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { OrbitControls, Environment } from "@react-three/drei"
+import type { RootState } from '@react-three/fiber'
+import { Group, Mesh, Vector3 as ThreeVector3, Euler as ThreeEuler } from 'three'
 
 interface WindTurbineProps {
   position: [number, number, number]
@@ -140,32 +129,53 @@ const Earth: React.FC<EarthProps> = ({ position, scale }) => {
   )
 }
 
-export function LoginAnimation() {
+const SceneContent: React.FC = () => {
+  const { camera } = useThree()
+
+  useEffect(() => {
+    // Position camera to focus more on the left side
+    camera.position.set(-3, 2, 10)
+  }, [camera])
+
   return (
-    <motion.div 
-      className="w-full h-full"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <Suspense fallback={<div>Loading...</div>}>
-        <ThreeCanvas
-          camera={{ position: [0, 0, 5], fov: 75 }}
-          style={{ background: "transparent" }}
-        >
-          <OrbitControls enableZoom={false} />
-          <Earth />
-          <WindTurbine position={[2, 0, 0]} />
-          <SolarPanel position={[-2, 0, 0]} />
-          <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
-            <planeGeometry args={[100, 100]} />
-            <meshStandardMaterial color="#f0f0f0" />
-          </mesh>
-          <Environment preset="sunset" />
-        </ThreeCanvas>
-      </Suspense>
-    </motion.div>
+    <>
+      <ambientLight intensity={0.5} />
+      <directionalLight position={new ThreeVector3(10, 10, 5)} intensity={1} />
+
+      <Earth position={[-5, 2, 0]} scale={2} />
+
+      <WindTurbine position={[-8, -1, -2]} scale={0.7} rotationSpeed={1.2} />
+      <WindTurbine position={[-6, -1, -3]} scale={0.6} rotationSpeed={0.8} />
+      <WindTurbine position={[-3, -1, -2]} scale={0.8} rotationSpeed={1} />
+
+      <SolarPanel position={[-7, -1, 1]} scale={0.8} rotation={[-0.1, 0.5, 0]} />
+      <SolarPanel position={[-4, -1, 2]} scale={0.7} rotation={[-0.1, -0.3, 0]} />
+      <SolarPanel position={[-2, -1, 3]} scale={0.9} rotation={[-0.1, 0.1, 0]} />
+
+      <mesh 
+        position={new ThreeVector3(0, -1.5, 0)} 
+        rotation={new ThreeEuler(-Math.PI / 2, 0, 0)}
+      >
+        <planeGeometry args={[30, 30]} />
+        <meshStandardMaterial color="#88c172" />
+      </mesh>
+    </>
   )
 }
 
-export default LoginAnimation
+export const Scene: React.FC = () => {
+  return (
+    <Canvas shadows>
+      <SceneContent />
+      <OrbitControls
+        enableZoom={false}
+        enablePan={false}
+        autoRotate
+        autoRotateSpeed={0.5}
+        minAzimuthAngle={-Math.PI / 4}
+        maxAzimuthAngle={Math.PI / 4}
+      />
+      <Environment preset="sunset" />
+    </Canvas>
+  )
+} 

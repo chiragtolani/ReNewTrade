@@ -1,6 +1,7 @@
 "use client"
 
 import { BellIcon, Building } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
@@ -23,6 +24,8 @@ interface HeaderProps {
 }
 
 export default function Header({ walletBalance, bankBalance, carbonCredits, userName, bankName }: HeaderProps) {
+  const router = useRouter()
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -82,8 +85,8 @@ export default function Header({ walletBalance, bankBalance, carbonCredits, user
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => (window.location.href = "/profile")}>Profile</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => (window.location.href = "/settings")}>Settings</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/profile")}>Profile</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/settings")}>Settings</DropdownMenuItem>
               <DropdownMenuItem>
                 <span className="flex items-center gap-2">
                   <Building className="h-4 w-4" />
@@ -94,7 +97,7 @@ export default function Header({ walletBalance, bankBalance, carbonCredits, user
               <DropdownMenuItem
                 onClick={() => {
                   localStorage.removeItem("user")
-                  window.location.href = "/login"
+                  router.push("/login")
                 }}
               >
                 Log out
