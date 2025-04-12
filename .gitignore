@@ -34,3 +34,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Hardhat
+cache
+artifacts
+typechain-types
+typechain
+
+# AI Model Data
+*.model
+*.weights
+*.bin
