@@ -4,12 +4,14 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "react-hot-toast"
 import { AIChat } from "@/components/AIChat"
+import ClientLayout from "./clientLayout"
+import { WalletProvider } from "@/contexts/WalletContext"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "ReNewTrade - P2P Energy Trading Platform",
-  description: "A modern platform for peer-to-peer renewable energy trading",
+  title: "ReNewTrade - Energy Trading Platform",
+  description: "A decentralized platform for trading renewable energy",
 }
 
 export default function RootLayout({
@@ -18,8 +20,8 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <WalletProvider>
+      <ClientLayout>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -30,7 +32,7 @@ export default function RootLayout({
           <AIChat />
           <Toaster position="bottom-right" />
         </ThemeProvider>
-      </body>
-    </html>
+      </ClientLayout>
+    </WalletProvider>
   )
 }

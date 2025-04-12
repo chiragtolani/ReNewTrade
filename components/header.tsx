@@ -1,11 +1,14 @@
 "use client"
 
-import { BellIcon, Building } from "lucide-react"
+import { BellIcon, Building, Wallet } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
+import { useState, useEffect } from 'react'
+import { BrowserProvider, Contract, JsonRpcSigner, formatEther } from 'ethers'
+import { toast } from "react-hot-toast"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,15 +19,74 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 interface HeaderProps {
-  walletBalance: number
   bankBalance: number
   carbonCredits: number
   userName: string
   bankName: string
 }
 
-export default function Header({ walletBalance, bankBalance, carbonCredits, userName, bankName }: HeaderProps) {
+export default function Header({ bankBalance, carbonCredits, userName, bankName }: HeaderProps) {
   const router = useRouter()
+  const [isConnected, setIsConnected] = useState(false)
+  const [connectedAddress, setConnectedAddress] = useState("")
+  const [walletBalance, setWalletBalance] = useState("0")
+  const [signer, setSigner] = useState<JsonRpcSigner | null>(null)
+
+  const connectWallet = async () => {
+    if (!window.ethereum) {
+      toast.error('Please install MetaMask')
+      return
+    }
+
+    try {
+      const provider = new BrowserProvider(window.ethereum)
+      await provider.send("eth_requestAccounts", [])
+      const newSigner = await provider.getSigner()
+      const address = await newSigner.getAddress()
+      const balance = await provider.getBalance(address)
+      
+      setSigner(newSigner)
+      setConnectedAddress(address)
+      setWalletBalance(formatEther(balance))
+      setIsConnected(true)
+      toast.success('Wallet connected successfully')
+    } catch (error) {
+      console.error('Error connecting wallet:', error)
+      toast.error('Failed to connect wallet')
+    }
+  }
+
+  const disconnectWallet = () => {
+    setSigner(null)
+    setConnectedAddress("")
+    setWalletBalance("0")
+    setIsConnected(false)
+    toast.success('Wallet disconnected')
+  }
+
+  useEffect(() => {
+    // Listen for account changes
+    if (window.ethereum) {
+      const provider = window.ethereum as any;  // Type assertion for MetaMask provider
+      provider.on('accountsChanged', async (accounts: string[]) => {
+        if (accounts.length === 0) {
+          disconnectWallet();
+        } else {
+          setConnectedAddress(accounts[0]);
+          const ethProvider = new BrowserProvider(provider);
+          const balance = await ethProvider.getBalance(accounts[0]);
+          setWalletBalance(formatEther(balance));
+        }
+      });
+    }
+
+    return () => {
+      if (window.ethereum) {
+        const provider = window.ethereum as any;
+        provider.removeListener('accountsChanged', () => {});
+      }
+    };
+  }, []);
 
   return (
     <motion.header
@@ -62,6 +124,31 @@ export default function Header({ walletBalance, bankBalance, carbonCredits, user
               </Badge>
             </div>
           </motion.div>
+
+          {isConnected ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Wallet className="h-4 w-4" />
+                  <span>{parseFloat(walletBalance).toFixed(4)} ETH</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="text-xs font-medium">{connectedAddress}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={disconnectWallet}>
+                  Disconnect
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="outline" onClick={connectWallet} className="flex items-center gap-2">
+              <Wallet className="h-4 w-4" />
+              Connect Wallet
+            </Button>
+          )}
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

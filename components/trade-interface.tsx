@@ -1,20 +1,21 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { BrowserProvider, Contract, JsonRpcSigner, parseEther } from 'ethers'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
-import { CheckCircle2, RefreshCw, ArrowLeftRight, Building, ShieldCheck, AlertCircle } from "lucide-react"
+import { CheckCircle2, RefreshCw, ArrowLeftRight, Building, ShieldCheck, AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { motion } from "framer-motion"
 import { pulseAnimation } from "@/lib/motion"
 import { Badge } from "@/components/ui/badge"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { toast } from "react-hot-toast"
 
 interface TradeInterfaceProps {
   onTrade: (tradeData: any) => void
@@ -23,31 +24,114 @@ interface TradeInterfaceProps {
   bankAccount: string
 }
 
+interface MetaMaskProvider {
+  isMetaMask?: boolean;
+  request: (args: { method: string; params?: any[] }) => Promise<any>;
+  on: (event: string, handler: (accounts: string[]) => void) => void;
+  removeListener: (event: string, handler: (accounts: string[]) => void) => void;
+}
+
+declare global {
+  interface Window {
+    ethereum?: MetaMaskProvider;
+  }
+}
+
 export default function TradeInterface({ onTrade, availableSurplus, currentRate, bankAccount }: TradeInterfaceProps) {
   const [tradeType, setTradeType] = useState("sell")
   const [amount, setAmount] = useState(1)
   const [price, setPrice] = useState(currentRate)
   const [showConfirmation, setShowConfirmation] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [contract, setContract] = useState<Contract | null>(null)
+  const [provider, setProvider] = useState<BrowserProvider | null>(null)
+  const [signer, setSigner] = useState<JsonRpcSigner | null>(null)
+
+  useEffect(() => {
+    const initializeContract = async () => {
+      if (window.ethereum) {
+        try {
+          const newProvider = new BrowserProvider(window.ethereum);
+          setProvider(newProvider);
+          const newSigner = await newProvider.getSigner();
+          setSigner(newSigner);
+
+          // Load contract ABI and address
+          const response = await fetch('/frontend-data/EnergyLedger.json');
+          const { abi, address } = await response.json();
+
+          // Create contract instance
+          const contract = new Contract(address, abi, newSigner);
+          setContract(contract);
+        } catch (error) {
+          console.error('Error initializing contract:', error);
+          toast.error('Failed to initialize contract');
+        }
+      }
+    };
+
+    initializeContract();
+  }, []);
 
   const handleAmountChange = (value: number[]) => {
     setAmount(value[0])
   }
 
   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPrice(Number.parseFloat(e.target.value))
+    setPrice(parseFloat(e.target.value))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    onTrade({
-      type: tradeType,
-      amount,
-      price,
-    })
-    setShowConfirmation(true)
-    setTimeout(() => {
-      setShowConfirmation(false)
-    }, 3000)
+    if (!contract || !signer) {
+      toast.error('Please connect your wallet first');
+      return;
+    }
+
+    setIsLoading(true)
+    try {
+      const kWh = Math.floor(amount);
+      const priceInETH = price.toString(); // Convert price to string for parseEther
+      const priceInWei = parseEther(priceInETH); // Convert ETH to Wei
+      const buyerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"; // Account #5
+
+      console.log(`Sending ${priceInETH} ETH (${priceInWei.toString()} Wei) to ${buyerAddress}`);
+
+      const tx = await contract.addTransaction(
+        buyerAddress,
+        kWh,
+        priceInWei,
+        0, // Status.Pending
+        { value: priceInWei } // Send ETH with the transaction
+      );
+      
+      console.log("Transaction sent:", tx.hash);
+      await tx.wait();
+      console.log("Transaction confirmed");
+      toast.success('Trade executed successfully!');
+      
+      // Update transaction history with new transaction
+      const receipt = await provider?.getTransactionReceipt(tx.hash);
+      if (receipt) {
+        const newTx = {
+          amount,
+          price: priceInETH,
+          type: tradeType,
+          timestamp: new Date().toISOString(),
+          hash: tx.hash,
+          from: receipt.from,
+          to: receipt.to,
+          value: priceInWei.toString(), // Add the ETH value
+          status: 'completed'
+        };
+        onTrade(newTx);
+      }
+    } catch (error) {
+      console.error('Error executing trade:', error);
+      toast.error('Failed to execute trade');
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const total = amount * price

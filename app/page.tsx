@@ -4,7 +4,9 @@ import ClientDashboard from "@/components/client-dashboard"
 export default function Home() {
   return (
     <ClientWrapper>
-      <ClientDashboard activeTab="overview" />
+      <div className="flex flex-col gap-4">
+        <ClientDashboard activeTab="overview" />
+      </div>
     </ClientWrapper>
   )
 }
