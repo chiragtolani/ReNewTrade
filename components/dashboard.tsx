@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import type { Transaction } from "@/types/transaction"
 
 import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
@@ -23,12 +24,18 @@ interface DashboardProps {
   activeTab?: string
 }
 
+interface TradeData {
+  type: "sell" | "buy";
+  amount: number;
+  price: number;
+}
+
 export default function Dashboard({ children, activeTab: propActiveTab }: DashboardProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [activeTab, setActiveTab] = useState(propActiveTab || "overview")
   const [energyData, setEnergyData] = useState(mockEnergyData)
-  const [transactions, setTransactions] = useState(mockTransactions)
+  const [transactions, setTransactions] = useState<Transaction[]>(mockTransactions)
   const [walletBalance, setWalletBalance] = useState(0.45)
   const [bankBalance, setBankBalance] = useState(1250.75)
   const [todayEarnings, setTodayEarnings] = useState(3.75)
@@ -101,13 +108,13 @@ export default function Dashboard({ children, activeTab: propActiveTab }: Dashbo
   }
 
   // Function to handle new trades
-  const handleTrade = (tradeData: any) => {
+  const handleTrade = (tradeData: TradeData) => {
     // Calculate utility fee (30% of transaction)
     const utilityFee = tradeData.amount * tradeData.price * 0.3
     const netAmount = tradeData.amount * tradeData.price - utilityFee
 
-    // Mock implementation - add the trade to transactions
-    const newTransaction = {
+    // Create new transaction with proper typing
+    const newTransaction: Transaction = {
       id: `tx-${transactions.length + 1}`,
       type: tradeData.type,
       amount: tradeData.amount,

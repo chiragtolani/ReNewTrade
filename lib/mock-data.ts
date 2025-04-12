@@ -1,3 +1,5 @@
+import type { Transaction } from "@/types/transaction"
+
 // Mock energy production and consumption data
 export const mockEnergyData = [
   { time: "00:00", production: 0, consumption: 0.8, surplus: 0 },
@@ -14,8 +16,8 @@ export const mockEnergyData = [
   { time: "22:00", production: 0, consumption: 1.1, surplus: 0 },
 ]
 
-// Mock transaction history with dollar values
-export const mockTransactions = [
+// Mock transaction history with proper typing
+export const mockTransactions: Transaction[] = [
   {
     id: "tx-1",
     type: "sell",
