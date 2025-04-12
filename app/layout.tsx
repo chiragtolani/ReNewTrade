@@ -1,15 +1,36 @@
-import type React from "react"
-import ClientLayout from "./clientLayout"
+import type { Metadata } from "next"
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "react-hot-toast"
+import { AIChat } from "@/components/AIChat"
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return <ClientLayout>{children}</ClientLayout>
+const inter = Inter({ subsets: ["latin"] })
+
+export const metadata: Metadata = {
+  title: "ReNewTrade - P2P Energy Trading Platform",
+  description: "A modern platform for peer-to-peer renewable energy trading",
 }
 
-
-import './globals.css'
-
-export const metadata = {
-  title: 'ReNewTrade - Peer to Peer Energy Trading Platform',
-  description: 'A modern peer-to-peer energy trading platform built with Next.js, React, and Three.js.',
-  generator: 'v0.dev'
-};
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
+  return (
+    <html lang="en">
+      <body className={inter.className}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <AIChat />
+          <Toaster position="bottom-right" />
+        </ThemeProvider>
+      </body>
+    </html>
+  )
+}
