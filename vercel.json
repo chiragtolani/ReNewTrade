@@ -1,0 +1,9 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm run build",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "env": {
+    "NEXT_PUBLIC_GEMINI_API_KEY": "AIzaSyCVehUL_d_ZPgM-SfrAijKjIlsF11PD-80"
+  }
+} 
