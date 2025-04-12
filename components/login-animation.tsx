@@ -1,8 +1,12 @@
 "use client"
 
-import dynamic from "next/dynamic"
-import { Suspense } from "react"
+import { useRef, useEffect, Suspense } from "react"
+import { Canvas, useFrame, useThree } from "@react-three/fiber"
+import { Float } from "@react-three/drei"
 import { motion } from "framer-motion"
+import type { RootState } from '@react-three/fiber'
+import { Group, Mesh, Vector3 as ThreeVector3, Euler as ThreeEuler } from 'three'
+import dynamic from 'next/dynamic'
 
 // Dynamically import Three.js components
 const ThreeCanvas = dynamic(() => import("@react-three/fiber").then(mod => mod.Canvas), {
@@ -154,9 +158,9 @@ export function LoginAnimation() {
           style={{ background: "transparent" }}
         >
           <OrbitControls enableZoom={false} />
-          <Earth />
-          <WindTurbine position={[2, 0, 0]} />
-          <SolarPanel position={[-2, 0, 0]} />
+          <Earth position={[-5, 2, 0]} scale={2} />
+          <WindTurbine position={[-8, -1, -2]} scale={0.7} rotationSpeed={1.2} />
+          <SolarPanel position={[-7, -1, 1]} scale={0.8} rotation={[-0.1, 0.5, 0]} />
           <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1, 0]}>
             <planeGeometry args={[100, 100]} />
             <meshStandardMaterial color="#f0f0f0" />
