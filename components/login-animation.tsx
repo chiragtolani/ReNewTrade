@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useEffect, Suspense } from "react"
+import { useRef, useEffect, Suspense, useState } from "react"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { Float } from "@react-three/drei"
 import { motion } from "framer-motion"
@@ -145,6 +145,16 @@ const Earth: React.FC<EarthProps> = ({ position, scale }) => {
 }
 
 export function LoginAnimation() {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  if (!isClient) {
+    return <div className="w-full h-full bg-gradient-to-b from-green-50 to-white" />
+  }
+
   return (
     <motion.div 
       className="w-full h-full"

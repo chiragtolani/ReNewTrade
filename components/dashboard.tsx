@@ -48,18 +48,25 @@ export default function Dashboard({ children, activeTab: propActiveTab }: Dashbo
     bankBalance?: number
   } | null>(null)
   const [showInsuranceBanner, setShowInsuranceBanner] = useState(true)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    // Get user from localStorage
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser)
-      setUser(parsedUser)
-      if (parsedUser.bankBalance) {
-        setBankBalance(parsedUser.bankBalance)
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (isClient) {
+      // Get user from localStorage
+      const storedUser = localStorage.getItem("user")
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser)
+        setUser(parsedUser)
+        if (parsedUser.bankBalance) {
+          setBankBalance(parsedUser.bankBalance)
+        }
       }
     }
-  }, [])
+  }, [isClient])
 
   useEffect(() => {
     if (propActiveTab) {
