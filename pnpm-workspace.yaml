@@ -1,0 +1,12 @@
+ignoredBuiltDependencies:
+  - '@tensorflow/tfjs-node'
+  - bufferutil
+  - core-js
+  - es5-ext
+  - keccak
+  - secp256k1
+  - sharp
+  - utf-8-validate
+  - web3
+  - web3-bzz
+  - web3-shh
