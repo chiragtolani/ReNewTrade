@@ -98,15 +98,34 @@ GEMINI_API_KEY=your_key
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
 ```
 
-### 📦 Project Structure
-...
+## 📦 Project Structure
+
+```graphql
 ReNewTrade/
 ├── components/          # Reusable React components
 ├── pages/               # Next.js route pages
 ├── public/              # Static assets
 ├── utils/               # AI logic and helpers
 ├── smart-contract/      # Solidity contracts and Hardhat setup
-└── styles/              # Tailwind CSS and global styles
+└── styles/              # Tailwind CSS and global styles
+
+### 📌 Roadmap
+...
+✅ User portal and login flow
+
+✅ AI agent suggestion and deal automation
+
+✅ Wallet connection and payment trigger
+
+✅ Transaction and carbon point logging
+
+🔄 Carbon credit redemption system (Coming Soon)
+
+🔄 Smart contract deployment on Sepolia (In Progress)
+
+🔄 MetaMask / wallet integrations
+
+🔄 Public beta release
 ...
 
 
