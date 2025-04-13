@@ -19,17 +19,23 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 interface HeaderProps {
-  bankBalance: number
-  carbonCredits: number
-  userName: string
-  bankName: string
+  walletBalance: number;
+  bankBalance: number;
+  carbonCredits: number;
+  userName: string;
+  bankName: string;
 }
 
-export default function Header({ bankBalance, carbonCredits, userName, bankName }: HeaderProps) {
+export function Header({ 
+  walletBalance, 
+  bankBalance, 
+  carbonCredits, 
+  userName, 
+  bankName 
+}: HeaderProps) {
   const router = useRouter()
   const [isConnected, setIsConnected] = useState(false)
   const [connectedAddress, setConnectedAddress] = useState("")
-  const [walletBalance, setWalletBalance] = useState("0")
   const [signer, setSigner] = useState<providers.JsonRpcSigner | null>(null)
 
   const connectWallet = async () => {
@@ -47,7 +53,6 @@ export default function Header({ bankBalance, carbonCredits, userName, bankName 
       
       setSigner(newSigner)
       setConnectedAddress(address)
-      setWalletBalance(utils.formatEther(balance))
       setIsConnected(true)
       toast.success('Wallet connected successfully')
     } catch (error) {
@@ -59,7 +64,6 @@ export default function Header({ bankBalance, carbonCredits, userName, bankName 
   const disconnectWallet = () => {
     setSigner(null)
     setConnectedAddress("")
-    setWalletBalance("0")
     setIsConnected(false)
     toast.success('Wallet disconnected')
   }
@@ -75,7 +79,6 @@ export default function Header({ bankBalance, carbonCredits, userName, bankName 
           setConnectedAddress(accounts[0]);
           const ethProvider = new providers.Web3Provider(provider);
           const balance = await ethProvider.getBalance(accounts[0]);
-          setWalletBalance(utils.formatEther(balance));
         }
       });
     }
@@ -130,7 +133,7 @@ export default function Header({ bankBalance, carbonCredits, userName, bankName 
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="flex items-center gap-2">
                   <Wallet className="h-4 w-4" />
-                  <span>{parseFloat(walletBalance).toFixed(4)} ETH</span>
+                  <span>{walletBalance.toFixed(4)} ETH</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
