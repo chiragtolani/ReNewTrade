@@ -110,7 +110,7 @@ ReNewTrade/
 ```
 
 ### 📌 Roadmap
-...
+
 ✅ User portal and login flow
 
 ✅ AI agent suggestion and deal automation
@@ -126,7 +126,7 @@ ReNewTrade/
 🔄 MetaMask / wallet integrations
 
 🔄 Public beta release
-...
+
 
 
 
