@@ -60,7 +60,7 @@ export function AIChat() {
   const [jsonData, setJsonData] = useState<any>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [totalCarbonCredits, setTotalCarbonCredits] = useState(0); // Track total credits
-  const homeownerAddress = "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+  const homeownerAddress = "0x14028b1fb1435125e679a8C2f87dF3FD8a6F907C";
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Initialize Gemini
