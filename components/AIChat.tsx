@@ -218,7 +218,7 @@ You are an AI assistant specializing in green energy trading, facilitating conne
      {
        "transaction": {
          "factoryName": string,
-         "homeownerAddress": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+         "homeownerAddress": "0x14028b1fb1435125e679a8C2f87dF3FD8a6F907C",
          "factoryAddress": string,
          "energyAmount": number,
          "pricePerKwh": number,
@@ -246,7 +246,7 @@ You are an AI assistant specializing in green energy trading, facilitating conne
      {
        "transaction": {
          "factoryName": string,
-         "homeownerAddress": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+         "homeownerAddress": "0x14028b1fb1435125e679a8C2f87dF3FD8a6F907C",
          "factoryAddress": string,
          "energyAmount": number,
          "pricePerKwh": number,
@@ -272,7 +272,7 @@ You are an AI assistant specializing in green energy trading, facilitating conne
      \`\`\`
 
 ### Constraints
-- Use homeowner address "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720".
+- Use homeowner address "0x14028b1fb1435125e679a8C2f87dF3FD8a6F907C".
 - Generate JSON for frontend but show readable text in chat.
 - Calculate carbon credits (1 kWh = 0.0005 credits) and include in transactions.
 - Handle errors gracefully.
