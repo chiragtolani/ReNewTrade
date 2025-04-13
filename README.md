@@ -1,96 +1,88 @@
-# ReNewTrade
+# ⚡ ReNewTrade 🌿
 
-A modern peer-to-peer energy trading platform built with Next.js, React, and Three.js.
+**Empowering Households to Monetize Surplus Solar Energy Through AI-Powered Energy Trading and Carbon Credits**
 
-[Live Demo](https://v0-p2-p-renewable-energy-project-25.vercel.app)
+ReNewTrade is an innovative decentralized platform that enables individuals generating **surplus solar energy at home** to trade their excess energy with **factories and companies**, while also earning **carbon credits** and **monetary rewards**. Our platform uses an **AI negotiation agent** to help users find the best offers, automate deals, and log everything transparently on a portal — with future blockchain integration planned.
 
-## Overview
+---
 
-ReNewTrade is a decentralized platform that enables users to trade renewable energy directly with each other. The platform provides a user-friendly interface for energy producers and consumers to connect, trade, and manage their energy transactions.
+## 🚀 Key Features
 
-## Features
+- 🔋 **Surplus Solar Energy Trading**  
+  Homeowners with excess solar energy can securely sell it to verified industrial buyers.
 
-- 🎨 Modern UI with Tailwind CSS and Radix UI components
-- 🌓 Dark/Light mode support
-- 📱 Responsive design
-- 🎮 Interactive 3D visualizations using Three.js
-- 📊 Real-time data visualization with Recharts
-- 🔒 Secure form handling with React Hook Form and Zod validation
-- 🚀 Optimized performance with Next.js
+- 🧠 **AI-Powered Deal Assistant**  
+  Our AI agent helps users:
+  - Discover the **best buyers and prices**
+  - **Negotiate** automatically
+  - Conclude the **deal upon user confirmation**
 
-## Tech Stack
+- 👛 **Wallet Integration**  
+  Users securely connect their crypto wallets to receive payments and interact with the platform.
 
-- **Framework:** Next.js 15
-- **UI Library:** React 19
-- **Styling:** Tailwind CSS
-- **3D Visualization:** Three.js, React Three Fiber
-- **UI Components:** Radix UI
-- **Form Handling:** React Hook Form, Zod
-- **Charts:** Recharts
-- **Animation:** Framer Motion
-- **Mobile Support:** Expo, React Native
+- 💸 **Payment Automation**  
+  Once a deal is confirmed, the **payment interface is triggered**, completing the transaction seamlessly.
 
-## Getting Started
+- 🧾 **Transaction Logging**  
+  All activity — from offers to payments — is logged and viewable in the user’s portal.
 
-### Prerequisites
+- 🌱 **Carbon Credit Generation**  
+  Users automatically earn carbon points for each transaction, which can be **redeemed for cash or rewards** *(feature coming soon)*.
 
-- Node.js (v18 or higher)
-- pnpm (recommended) or npm
+- 🔗 **Blockchain Integration** *(Upcoming)*  
+  Future-ready plans to implement smart contracts on the Ethereum Sepolia testnet for secure and tamper-proof transactions.
 
-### Installation
+---
 
-1. Clone the repository:
+## 🧭 Step-by-Step User Journey
+
+1. **Sign In to the Portal**  
+   The user logs into the ReNewTrade portal with secure credentials.
+
+2. **Connect Wallet**  
+   The user connects their crypto wallet (e.g., MetaMask) to initiate trading and receive payments.
+
+3. **AI Finds the Best Offers**  
+   The AI scans the platform and suggests optimal buyers based on real-time pricing, demand, and geography.
+
+4. **Negotiate & Confirm**  
+   The AI negotiates automatically. The user reviews the final offer and **confirms the deal**.
+
+5. **Trigger Payment Interface**  
+   Once confirmed, the platform initiates a secure payment via the connected wallet.
+
+6. **Log Transaction & Award Carbon Points**  
+   The payment and trade details are saved in the user's portal. The platform automatically calculates and awards carbon credits.
+
+7. **Track & Redeem (Coming Soon)**  
+   Users can track their energy trades, earnings, and carbon points — which will later be redeemable for cash or partner rewards.
+
+---
+
+## 🏗️ Tech Stack
+
+| Component        | Technology                          |
+|------------------|--------------------------------------|
+| Frontend         | React.js, Tailwind CSS               |
+| Backend/API      | Node.js, Express                     |
+| AI Agent         | Gemini API / Custom LLM Logic        |
+| Blockchain       | Solidity, Hardhat, Sepolia Testnet   |
+| Database         | Firestore (NoSQL)                    |
+| Wallet Support   | Ethers.js / Wagmi                    |
+
+---
+
+## 🛠️ Getting Started
+
+### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/chiragtolani/ReNewTrade.git
 cd ReNewTrade
 ```
 
-2. Install dependencies:
+### 2. Install Dependencies
+
 ```bash
-pnpm install
-# or
 npm install
 ```
-
-3. Start the development server:
-```bash
-pnpm dev
-# or
-npm run dev
-```
-
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Available Scripts
-
-- `pnpm dev` - Start the development server
-- `pnpm build` - Build the application for production
-- `pnpm start` - Start the production server
-- `pnpm lint` - Run ESLint
-
-## Project Structure
-
-```
-ReNewTrade/
-├── app/              # Next.js app directory
-├── components/       # Reusable UI components
-├── styles/          # Global styles
-├── hooks/           # Custom React hooks
-├── lib/             # Utility functions and configurations
-├── public/          # Static assets
-└── ...config files
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Next.js team for the amazing framework
-- Radix UI for the accessible components
-- Three.js community for the 3D visualization tools 
