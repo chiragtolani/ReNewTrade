@@ -1,15 +1,15 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { BrowserProvider, JsonRpcSigner, formatEther } from 'ethers';
+import { providers, utils } from 'ethers';
 import { toast } from "react-hot-toast";
 
 interface WalletContextType {
   isConnected: boolean;
   connectedAddress: string;
   walletBalance: string;
-  signer: JsonRpcSigner | null;
-  provider: BrowserProvider | null;
+  signer: providers.JsonRpcSigner | null;
+  provider: providers.Web3Provider | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
 }
@@ -20,18 +20,18 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [connectedAddress, setConnectedAddress] = useState("");
   const [walletBalance, setWalletBalance] = useState("0");
-  const [signer, setSigner] = useState<JsonRpcSigner | null>(null);
-  const [provider, setProvider] = useState<BrowserProvider | null>(null);
+  const [signer, setSigner] = useState<providers.JsonRpcSigner | null>(null);
+  const [provider, setProvider] = useState<providers.Web3Provider | null>(null);
 
-  const updateWalletInfo = async (newProvider: BrowserProvider, address: string) => {
+  const updateWalletInfo = async (newProvider: providers.Web3Provider, address: string) => {
     try {
-      const newSigner = await newProvider.getSigner();
+      const newSigner = newProvider.getSigner();
       const balance = await newProvider.getBalance(address);
       
       setSigner(newSigner);
       setProvider(newProvider);
       setConnectedAddress(address);
-      setWalletBalance(formatEther(balance));
+      setWalletBalance(utils.formatEther(balance));
       setIsConnected(true);
     } catch (error) {
       console.error('Error updating wallet info:', error);
@@ -45,8 +45,8 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const newProvider = new BrowserProvider(window.ethereum);
-      const accounts = await newProvider.send("eth_requestAccounts", []);
+      const newProvider = new providers.Web3Provider(window.ethereum);
+      const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
       await updateWalletInfo(newProvider, accounts[0]);
       toast.success('Wallet connected successfully');
     } catch (error) {
@@ -68,9 +68,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     // Check if already connected
     const checkConnection = async () => {
       if (window.ethereum) {
-        const newProvider = new BrowserProvider(window.ethereum);
+        const newProvider = new providers.Web3Provider(window.ethereum);
         try {
-          const accounts = await newProvider.listAccounts();
+          const accounts = await window.ethereum.request({ method: "eth_accounts" });
           if (accounts.length > 0) {
             await updateWalletInfo(newProvider, accounts[0]);
           }
@@ -90,7 +90,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         if (accounts.length === 0) {
           disconnectWallet();
         } else {
-          const newProvider = new BrowserProvider(provider);
+          const newProvider = new providers.Web3Provider(provider);
           await updateWalletInfo(newProvider, accounts[0]);
         }
       });

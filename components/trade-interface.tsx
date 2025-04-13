@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { BrowserProvider, Contract, JsonRpcSigner, parseEther } from 'ethers'
+import { providers, Contract, utils } from 'ethers'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Label } from "@/components/ui/label"
@@ -44,16 +44,16 @@ export default function TradeInterface({ onTrade, availableSurplus, currentRate,
   const [showConfirmation, setShowConfirmation] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [contract, setContract] = useState<Contract | null>(null)
-  const [provider, setProvider] = useState<BrowserProvider | null>(null)
-  const [signer, setSigner] = useState<JsonRpcSigner | null>(null)
+  const [provider, setProvider] = useState<providers.Web3Provider | null>(null)
+  const [signer, setSigner] = useState<providers.JsonRpcSigner | null>(null)
 
   useEffect(() => {
     const initializeContract = async () => {
       if (window.ethereum) {
         try {
-          const newProvider = new BrowserProvider(window.ethereum);
+          const newProvider = new providers.Web3Provider(window.ethereum);
           setProvider(newProvider);
-          const newSigner = await newProvider.getSigner();
+          const newSigner = newProvider.getSigner();
           setSigner(newSigner);
 
           // Load contract ABI and address
@@ -92,7 +92,7 @@ export default function TradeInterface({ onTrade, availableSurplus, currentRate,
     try {
       const kWh = Math.floor(amount);
       const priceInETH = price.toString(); // Convert price to string for parseEther
-      const priceInWei = parseEther(priceInETH); // Convert ETH to Wei
+      const priceInWei = utils.parseEther(priceInETH); // Convert ETH to Wei
       const buyerAddress = "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"; // Account #5
 
       console.log(`Sending ${priceInETH} ETH (${priceInWei.toString()} Wei) to ${buyerAddress}`);

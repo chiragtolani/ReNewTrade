@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { motion } from "framer-motion"
 import { useState, useEffect } from 'react'
-import { BrowserProvider, Contract, JsonRpcSigner, formatEther } from 'ethers'
+import { providers, utils } from 'ethers'
 import { toast } from "react-hot-toast"
 import {
   DropdownMenu,
@@ -30,7 +30,7 @@ export default function Header({ bankBalance, carbonCredits, userName, bankName 
   const [isConnected, setIsConnected] = useState(false)
   const [connectedAddress, setConnectedAddress] = useState("")
   const [walletBalance, setWalletBalance] = useState("0")
-  const [signer, setSigner] = useState<JsonRpcSigner | null>(null)
+  const [signer, setSigner] = useState<providers.JsonRpcSigner | null>(null)
 
   const connectWallet = async () => {
     if (!window.ethereum) {
@@ -39,15 +39,15 @@ export default function Header({ bankBalance, carbonCredits, userName, bankName 
     }
 
     try {
-      const provider = new BrowserProvider(window.ethereum)
-      await provider.send("eth_requestAccounts", [])
-      const newSigner = await provider.getSigner()
+      const provider = new providers.Web3Provider(window.ethereum)
+      await window.ethereum.request({ method: "eth_requestAccounts" })
+      const newSigner = provider.getSigner()
       const address = await newSigner.getAddress()
       const balance = await provider.getBalance(address)
       
       setSigner(newSigner)
       setConnectedAddress(address)
-      setWalletBalance(formatEther(balance))
+      setWalletBalance(utils.formatEther(balance))
       setIsConnected(true)
       toast.success('Wallet connected successfully')
     } catch (error) {
@@ -73,9 +73,9 @@ export default function Header({ bankBalance, carbonCredits, userName, bankName 
           disconnectWallet();
         } else {
           setConnectedAddress(accounts[0]);
-          const ethProvider = new BrowserProvider(provider);
+          const ethProvider = new providers.Web3Provider(provider);
           const balance = await ethProvider.getBalance(accounts[0]);
-          setWalletBalance(formatEther(balance));
+          setWalletBalance(utils.formatEther(balance));
         }
       });
     }

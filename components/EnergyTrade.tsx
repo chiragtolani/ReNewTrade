@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { parseEther, formatEther } from 'ethers';
+import { utils } from 'ethers';
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
 import { useBlockchain } from "@/contexts/blockchain-context";
@@ -89,7 +89,7 @@ export default function EnergyTrade({ onTransactionComplete }: EnergyTradeProps)
 
     setIsLoading(true);
     try {
-      const priceInWei = parseEther(tradeData.price.toString());
+      const priceInWei = utils.parseEther(tradeData.price.toString());
       console.log('Transaction participants:', {
         seller: address,
         buyer: tradeData.buyerAddress,
@@ -112,15 +112,15 @@ export default function EnergyTrade({ onTransactionComplete }: EnergyTradeProps)
       console.log("Transaction confirmed:", receipt);
       
       // Create transaction record for history
-      const utilityFee = Number(formatEther(priceInWei)) * 0.3; // 30% utility fee
-      const total = Number(formatEther(priceInWei));
+      const utilityFee = Number(utils.formatEther(priceInWei)) * 0.3; // 30% utility fee
+      const total = Number(utils.formatEther(priceInWei));
       const netAmount = total - utilityFee;
 
       const transaction: Transaction = {
         id: tx.hash,
         type: "sell",
         amount: tradeData.kWh,
-        price: Number(formatEther(priceInWei)),
+        price: Number(utils.formatEther(priceInWei)),
         total: total,
         netAmount: netAmount,
         utilityFee: utilityFee,

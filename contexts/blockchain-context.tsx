@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { ethers } from "ethers"
+import { providers, Contract } from "ethers"
 import EnergyLedger from "../frontend-data/EnergyLedger.json"
 
 declare global {
@@ -11,9 +11,9 @@ declare global {
 }
 
 interface BlockchainContextType {
-  contract: ethers.Contract | null
-  provider: ethers.BrowserProvider | null
-  signer: ethers.JsonRpcSigner | null
+  contract: Contract | null
+  provider: providers.Web3Provider | null
+  signer: providers.JsonRpcSigner | null
   address: string | null
   connectWallet: () => Promise<void>
   isConnected: boolean
@@ -29,16 +29,16 @@ const BlockchainContext = createContext<BlockchainContextType>({
 })
 
 export function BlockchainProvider({ children }: { children: React.ReactNode }) {
-  const [contract, setContract] = useState<ethers.Contract | null>(null)
-  const [provider, setProvider] = useState<ethers.BrowserProvider | null>(null)
-  const [signer, setSigner] = useState<ethers.JsonRpcSigner | null>(null)
+  const [contract, setContract] = useState<Contract | null>(null)
+  const [provider, setProvider] = useState<providers.Web3Provider | null>(null)
+  const [signer, setSigner] = useState<providers.JsonRpcSigner | null>(null)
   const [address, setAddress] = useState<string | null>(null)
   const [isConnected, setIsConnected] = useState(false)
 
-  const setupConnection = async (provider: ethers.BrowserProvider, accounts: string[]) => {
+  const setupConnection = async (provider: providers.Web3Provider, accounts: string[]) => {
     try {
-      const signer = await provider.getSigner()
-      const contract = new ethers.Contract(
+      const signer = provider.getSigner()
+      const contract = new Contract(
         EnergyLedger.address,
         EnergyLedger.abi,
         signer
@@ -71,7 +71,7 @@ export function BlockchainProvider({ children }: { children: React.ReactNode }) 
         params: [{ chainId: "0xaa36a7" }], // Sepolia chain ID
       })
 
-      const provider = new ethers.BrowserProvider(window.ethereum)
+      const provider = new providers.Web3Provider(window.ethereum)
       await setupConnection(provider, accounts)
     } catch (error) {
       console.error("Error connecting wallet:", error)
@@ -88,7 +88,7 @@ export function BlockchainProvider({ children }: { children: React.ReactNode }) 
           if (accounts.length > 0) {
             const chainId = await window.ethereum.request({ method: "eth_chainId" })
             if (chainId === "0xaa36a7") { // Sepolia chainId
-              const provider = new ethers.BrowserProvider(window.ethereum)
+              const provider = new providers.Web3Provider(window.ethereum)
               await setupConnection(provider, accounts)
             }
           }
@@ -112,7 +112,7 @@ export function BlockchainProvider({ children }: { children: React.ReactNode }) 
           setContract(null)
           setSigner(null)
         } else {
-          const provider = new ethers.BrowserProvider(window.ethereum)
+          const provider = new providers.Web3Provider(window.ethereum)
           await setupConnection(provider, accounts)
         }
       }
