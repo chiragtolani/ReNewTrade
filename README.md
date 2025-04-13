@@ -108,6 +108,7 @@ ReNewTrade/
 ├── utils/               # AI logic and helpers
 ├── smart-contract/      # Solidity contracts and Hardhat setup
 └── styles/              # Tailwind CSS and global styles
+```
 
 ### 📌 Roadmap
 ...
