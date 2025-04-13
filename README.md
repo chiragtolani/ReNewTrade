@@ -99,7 +99,6 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
 ```
 
 ## 📦 Project Structure
-
 ```graphql
 ReNewTrade/
 ├── components/          # Reusable React components
