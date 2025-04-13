@@ -33,7 +33,7 @@ interface MetaMaskProvider {
 
 declare global {
   interface Window {
-    ethereum?: MetaMaskProvider;
+    ethereum: any;
   }
 }
 
