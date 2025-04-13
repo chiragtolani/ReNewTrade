@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Contract, parseEther, formatEther } from 'ethers';
+import { parseEther, formatEther } from 'ethers';
 import { toast } from "react-hot-toast";
 import { Loader2 } from "lucide-react";
-import { useWallet } from "@/contexts/WalletContext";
+import { useBlockchain } from "@/contexts/blockchain-context";
 
 interface TradeData {
   sellerAddress: string;
@@ -39,9 +39,8 @@ interface EnergyTradeProps {
 
 export default function EnergyTrade({ onTransactionComplete }: EnergyTradeProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [contract, setContract] = useState<Contract | null>(null);
   const [tradeData, setTradeData] = useState<TradeData | null>(null);
-  const { isConnected, connectedAddress, signer } = useWallet();
+  const { contract, connectWallet, isConnected, address } = useBlockchain();
 
   useEffect(() => {
     const loadData = async () => {
@@ -50,14 +49,6 @@ export default function EnergyTrade({ onTransactionComplete }: EnergyTradeProps)
         const response = await fetch('/energy-trade.json');
         const data = await response.json();
         setTradeData(data);
-
-        // Load contract if wallet is connected
-        if (signer) {
-          const contractResponse = await fetch('/frontend-data/EnergyLedger.json');
-          const { abi, address } = await contractResponse.json();
-          const contract = new Contract(address, abi, signer);
-          setContract(contract);
-        }
       } catch (error) {
         console.error('Error loading data:', error);
         toast.error('Failed to load data');
@@ -65,20 +56,33 @@ export default function EnergyTrade({ onTransactionComplete }: EnergyTradeProps)
     };
 
     loadData();
-  }, [signer]);
+  }, []);
+
+  // Debug logging for connection state changes
+  useEffect(() => {
+    console.log('Connection state:', {
+      isConnected,
+      address,
+      hasContract: !!contract
+    });
+  }, [isConnected, address, contract]);
+
+  const handleConnect = async () => {
+    try {
+      await connectWallet();
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+      toast.error('Failed to connect wallet');
+    }
+  };
 
   const handleSell = async () => {
-    if (!contract || !signer || !tradeData) {
+    if (!contract || !address || !tradeData) {
       toast.error('Please connect your wallet first');
       return;
     }
 
-    if (!connectedAddress || typeof connectedAddress !== 'string') {
-      toast.error('Invalid wallet connection');
-      return;
-    }
-
-    if (connectedAddress.toLowerCase() !== tradeData.sellerAddress.toLowerCase()) {
+    if (address.toLowerCase() !== tradeData.sellerAddress.toLowerCase()) {
       toast.error(`Please connect with the seller account ${tradeData.sellerAddress}`);
       return;
     }
@@ -87,7 +91,7 @@ export default function EnergyTrade({ onTransactionComplete }: EnergyTradeProps)
     try {
       const priceInWei = parseEther(tradeData.price.toString());
       console.log('Transaction participants:', {
-        seller: connectedAddress,
+        seller: address,
         buyer: tradeData.buyerAddress,
         contract: contract.target
       });
@@ -149,13 +153,8 @@ export default function EnergyTrade({ onTransactionComplete }: EnergyTradeProps)
     );
   }
 
-  // Safely check if addresses match with type checking
-  const isValidAddress = (addr: any): addr is string => {
-    return typeof addr === 'string' && addr.length > 0;
-  };
-
-  const addressesMatch = isValidAddress(connectedAddress) && isValidAddress(tradeData.sellerAddress) 
-    ? connectedAddress.toLowerCase() === tradeData.sellerAddress.toLowerCase()
+  const addressesMatch = address && tradeData.sellerAddress 
+    ? address.toLowerCase() === tradeData.sellerAddress.toLowerCase()
     : false;
 
   const canSell = isConnected && addressesMatch;
@@ -195,8 +194,8 @@ export default function EnergyTrade({ onTransactionComplete }: EnergyTradeProps)
           </div>
 
           <Button
-            onClick={handleSell}
-            disabled={isLoading || !canSell}
+            onClick={!isConnected ? handleConnect : handleSell}
+            disabled={isLoading || (isConnected && !canSell)}
             className="w-full"
           >
             {isLoading ? (
@@ -205,13 +204,20 @@ export default function EnergyTrade({ onTransactionComplete }: EnergyTradeProps)
                 Processing...
               </>
             ) : !isConnected ? (
-              'Connect Wallet to Sell'
+              'Connect Wallet'
             ) : !addressesMatch ? (
               'Wrong Account Connected'
             ) : (
               'Sell Energy'
             )}
           </Button>
+
+          {/* Debug info */}
+          <div className="text-xs text-gray-500 mt-2">
+            <p>Connected: {isConnected ? 'Yes' : 'No'}</p>
+            <p>Address: {address || 'None'}</p>
+            <p>Has Contract: {contract ? 'Yes' : 'No'}</p>
+          </div>
         </div>
       </CardContent>
     </Card>
