@@ -1,23 +1,26 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { useState, useRef, useEffect } from "react";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card } from "@/components/ui/card";
-import { Loader2, MapPin, Zap, DollarSign, Leaf, MessageSquare, X } from "lucide-react";
+import { Loader2, MessageSquare } from "lucide-react";
 import { toast } from "react-hot-toast";
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown from "react-markdown";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { ethers } from "ethers";
+import EnergyLedger from "../frontend-data/EnergyLedger.json"; // Adjust path
+import { useWallet } from "../contexts/WalletContext"; // Adjust path
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
 }
 
@@ -25,143 +28,351 @@ interface FactoryMatch {
   name: string;
   distance: number;
   energyDemand: number;
-  priceRange: {
-    min: number;
-    max: number;
-  };
+  priceRange: { min: number; max: number };
+  lossFactor: number;
+  walletAddress: string;
+}
+
+interface Transaction {
+  factoryName: string;
+  homeownerAddress: string;
+  factoryAddress: string;
+  energyAmount: number;
+  pricePerKwh: number;
+  totalPrice: number;
+  timestamp: string;
+  status: "pending" | "confirmed" | "settled";
+  transactionId?: number;
+  transactionHash?: string;
+  carbonCredits?: number; // Added for carbon credits
 }
 
 export function AIChat() {
+  const { isConnected, connectedAddress } = useWallet();
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [genAI, setGenAI] = useState<GoogleGenerativeAI | null>(null);
+  const [stage, setStage] = useState<
+    "init" | "collecting_details" | "showing_matches" | "negotiating" | "confirming" | "completed"
+  >("init");
+  const [jsonData, setJsonData] = useState<any>(null);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [totalCarbonCredits, setTotalCarbonCredits] = useState(0); // Track total credits
+  const homeownerAddress = "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720";
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
 
+  // Initialize Gemini
   useEffect(() => {
-    // Initialize Gemini in useEffect to ensure it runs on client side
     const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-    console.log('API Key status:', apiKey ? 'Present' : 'Missing');
-    console.log('API Key length:', apiKey?.length);
-    
     if (!apiKey) {
-      console.error('Gemini API key is not set');
-      toast.error('AI configuration error. Please check your settings.');
+      toast.error("AI configuration error.");
       return;
     }
     try {
       const ai = new GoogleGenerativeAI(apiKey);
-      console.log('Gemini AI initialized successfully');
       setGenAI(ai);
     } catch (error) {
-      console.error('Error initializing Gemini:', error);
-      toast.error('Failed to initialize AI. Please try again later.');
+      console.error("Error initializing Gemini:", error);
+      toast.error("Failed to initialize AI.");
     }
   }, []);
 
-  // Enhanced system context for the AI
-  const systemContext = `You are an AI assistant specializing in green energy trading, powered by a Gemini-based chatbot. Your role is to assist homeowners in connecting with factory owners interested in purchasing green energy (e.g., solar power) through an interactive, user-friendly application. The chatbot enables users to request matches with factory owners ready to buy, processes the matches, negotiates prices, facilitates secure Ethereum transactions, and tracks carbon credits earned. Use the following factors to guide your recommendations and actions:
-
-1. Location Analysis
-Proximity Between Producers and Consumers:
-Calculate distances between homeowners and factory owners using location data (e.g., coordinates or zip codes) to minimize transmission losses.
-Prioritize factories within a 10-mile radius for optimal efficiency.
-Local Energy Grid Capacity:
-Assess grid constraints (e.g., max 1000 kWh per link) to ensure feasible energy transfers.
-Verify compatibility with local utility providers for seamless integration.
-Regional Energy Policies and Incentives:
-Incorporate regional rules (e.g., California’s net metering caps) and incentives (e.g., tax credits for green trades) to filter eligible factories.
-Highlight policies that boost homeowner profits (e.g., feed-in tariffs).
-2. Energy Matching
-Current Energy Production Capacity:
-Analyze homeowner surplus (e.g., 10 kWh solar at noon) using real-time or synthetic smart meter data.
-Ensure surplus exceeds trade minimum (e.g., 1 kWh).
-Factory Energy Demand Patterns:
-Match factories based on hourly demand (e.g., 100 kWh at 6 PM) from database records.
-Prioritize factories with consistent needs aligning with homeowner surplus times.
-Peak and Off-Peak Usage Times:
-Identify peak demand (e.g., 8 AM, 6 PM) to maximize trade value and off-peak (e.g., 2 AM) for lower-priority matches.
-Use time-series data to predict optimal trading windows.
-Energy Storage Possibilities:
-Suggest trades with factories that have storage (e.g., batteries) for surplus not immediately consumed.
-Flag storage options to stabilize supply (e.g., store 5 kWh for later sale).
-3. Pricing and Negotiation
-Market Rates for Green Energy:
-Reference local rates (e.g., $0.12/kWh vs. grid’s $0.15/kWh) to set competitive baselines.
-Adjust for supply/demand (e.g., lower at solar peak, higher at night).
-Long-Term Contract Benefits:
-Propose multi-trade deals (e.g., 10 kWh daily for a month) for stable pricing and trust.
-Highlight savings (e.g., 10% discount for factories committing long-term).
-Government Subsidies and Incentives:
-Apply subsidies (e.g., 30% ITC for solar) to reduce effective costs for factories.
-Inform users of added profits from green incentives.
-Carbon Credit Valuation:
-Estimate credits (e.g., 0.5 kg CO2/kWh = $0.10/credit) as a pricing factor.
-Bundle credits into trade offers (e.g., “10 kWh + 5 credits for $1.20”).
-4. Carbon Credits
-Carbon Offset Calculations:
-Calculate CO2 savings (e.g., kWh traded * grid emission factor, like 10 kWh * 0.5 kg/kWh = 5 kg CO2).
-Use regional emission factors (e.g., 0.4-0.9 kg CO2/kWh) for accuracy.
-Certification Requirements:
-Ensure credits align with standards (e.g., Verra’s 1 credit = 1000 kg CO2) or use a demo-friendly unit (1 credit = 1 kg).
-Log calculations transparently for auditability.
-Trading Platforms:
-Enable credit trading via Ethereum marketplaces (e.g., mock Uniswap) or cashout to fiat (e.g., $0.50 for 5 kg).
-Display trade options in the app.
-Environmental Impact Assessment:
-Show users their total CO2 savings (e.g., “50 kg this month”) to boost engagement.
-Highlight factory-specific impact (e.g., “Trading with Factory B saves 20% more CO2”).`;
-
+  // Scroll to bottom
   useEffect(() => {
     if (scrollAreaRef.current) {
       scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
   }, [messages]);
 
-  const generateResponse = async (userInput: string) => {
-    if (!genAI) {
-      throw new Error('AI is not initialized. Please try again.');
+  // System prompt with updated instructions
+  const systemContext = `
+You are an AI assistant specializing in green energy trading, facilitating connections between homeowners selling surplus renewable energy and factory owners buying it. Follow this workflow for user interactions, ensuring responses are clear, actionable, and user-friendly. Generate structured JSON data in the background for frontend processing, but present information to the user in readable, conversational text (e.g., bullet points, tables) without showing raw JSON in the chat unless explicitly requested. Additionally, calculate carbon credits for transactions based on energy sold (1 kWh = 0.0005 carbon credits) and include them in transaction outputs.
+
+### Workflow
+
+1. **User Initiates Sale**:
+   - When a user messages about selling surplus energy, acknowledge and prompt for details:
+     - Location (address or general area).
+     - Energy production (type, capacity in kW, surplus in kWh daily/monthly).
+     - Preferred contract terms (minimum price per kWh).
+     - Any energy storage details.
+   - Respond conversationally, e.g.:
+     \`\`\`
+     Great to hear you're interested in selling surplus energy! Could you share:
+     - Your location (e.g., city or zip code).
+     - Details of your energy setup (e.g., solar panels, 10 kW capacity, 20 kWh surplus daily).
+     - Your preferred terms (e.g., minimum price per kWh, contract length).
+     - Any battery storage you might have.
+     \`\`\`
+   - Store details internally for matching.
+
+2. **Factory Matching**:
+   - Match homeowner details with factories from:
+     \`\`\`json
+     [
+       {
+         "name": "GreenTech Industries",
+         "address": "456 Industrial Park Road, Greenvale, CA 90215",
+         "distance": 5,
+         "energyDemand": 500000,
+         "priceRange": { "min": 0.12, "max": 0.15 },
+         "lossFactor": 0.05,
+         "walletAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8"
+       },
+       {
+         "name": "EcoFactory Corp",
+         "address": "789 Factory Lane, Greenvale, CA 90216",
+         "distance": 8,
+         "energyDemand": 300000,
+         "priceRange": { "min": 0.11, "max": 0.14 },
+         "lossFactor": 0.07,
+         "walletAddress": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC"
+       },
+       {
+         "name": "SolarWorks Manufacturing",
+         "address": "321 Solar Avenue, Greenvale, CA 90217",
+         "distance": 3,
+         "energyDemand": 400000,
+         "priceRange": { "min": 0.13, "max": 0.16 },
+         "lossFactor": 0.04,
+         "walletAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+       },
+       {
+         "name": "CleanEnergy Plants",
+         "address": "654 Renewable Drive, Greenvale, CA 90218",
+         "distance": 12,
+         "energyDemand": 600000,
+         "priceRange": { "min": 0.10, "max": 0.13 },
+         "lossFactor": 0.08,
+         "walletAddress": "0x90F79bf6EB2c4f870365E785982E1f101E93b906"
+       },
+       {
+         "name": "BrightFuture Factories",
+         "address": "987 Greenway Blvd, Greenvale, CA 90219",
+         "distance": 6,
+         "energyDemand": 350000,
+         "priceRange": { "min": 0.115, "max": 0.145 },
+         "lossFactor": 0.06,
+         "walletAddress": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65"
+       }
+     ]
+     \`\`\`
+   - Evaluate based on distance, loss factor, energy demand, and price compatibility.
+   - Generate JSON internally:
+     \`\`\`json
+     {
+       "factoryMatches": [
+         {
+           "name": string,
+           "distance": number,
+           "energyDemand": number,
+           "priceRange": { "min": number, "max": number },
+           "lossFactor": number,
+           "walletAddress": string
+         }
+       ],
+       "recommended": {
+         "name": string,
+         "reason": string
+       }
+     }
+     \`\`\`
+   - Present to user in readable format, e.g.:
+     \`\`\`
+     I've found some great matches for your energy sale:
+     - **GreenTech Industries**: 5 miles away, needs 500,000 kWh/year, offers $0.12-$0.15/kWh, 5% loss.
+     - **SolarWorks Manufacturing**: 3 miles away, needs 400,000 kWh/year, offers $0.13-$0.16/kWh, 4% loss.
+     **Recommended**: SolarWorks Manufacturing, due to closer proximity and lower loss factor.
+     Would you like to proceed with SolarWorks, choose another, or negotiate terms?
+     \`\`\`
+
+3. **Negotiation**:
+   - Simulate negotiation to maximize homeowner price within factory range.
+   - Generate JSON:
+     \`\`\`json
+     {
+       "factory": {
+         "name": string,
+         "negotiatedPrice": number,
+         "energyAmount": number,
+         "lossFactor": number,
+         "walletAddress": string
+       },
+       "status": "negotiation_complete"
+     }
+     \`\`\`
+   - Present to user, e.g.:
+     \`\`\`
+     After negotiating with SolarWorks Manufacturing, we've agreed on:
+     - Price: $0.15 per kWh
+     - Energy: 20 kWh daily
+     - Loss Factor: 4%
+     Would you like to confirm this deal?
+     \`\`\`
+
+4. **Transaction Confirmation**:
+   - Prepare JSON for EnergyLedger contract:
+     \`\`\`json
+     {
+       "transaction": {
+         "factoryName": string,
+         "homeownerAddress": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+         "factoryAddress": string,
+         "energyAmount": number,
+         "pricePerKwh": number,
+         "totalPrice": number,
+         "timestamp": string,
+         "status": "pending",
+         "carbonCredits": number
+       }
+     }
+     \`\`\`
+   - Calculate carbon credits: 1 kWh = 0.0005 credits.
+   - Present to user, e.g.:
+     \`\`\`
+     Ready to confirm your transaction with SolarWorks Manufacturing:
+     - Energy: 20 kWh
+     - Price: $0.15/kWh
+     - Total: $3.00
+     - Carbon Credits Earned: 0.01
+     Please confirm to proceed with MetaMask.
+     \`\`\`
+
+5. **Transaction Completion**:
+   - After blockchain processing, generate JSON:
+     \`\`\`json
+     {
+       "transaction": {
+         "factoryName": string,
+         "homeownerAddress": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+         "factoryAddress": string,
+         "energyAmount": number,
+         "pricePerKwh": number,
+         "totalPrice": number,
+         "timestamp": string,
+         "status": "confirmed",
+         "transactionId": number,
+         "transactionHash": string,
+         "carbonCredits": number
+       }
+     }
+     \`\`\`
+   - Present to user, e.g.:
+     \`\`\`
+     Success! Your transaction with SolarWorks Manufacturing is confirmed:
+     - Energy Sold: 20 kWh
+     - Price: $0.15/kWh
+     - Total: $3.00
+     - Carbon Credits Earned: 0.01
+     - Transaction ID: 123
+     - View on Etherscan: [link]
+     Your total carbon credits are now X.XX.
+     \`\`\`
+
+### Constraints
+- Use homeowner address "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720".
+- Generate JSON for frontend but show readable text in chat.
+- Calculate carbon credits (1 kWh = 0.0005 credits) and include in transactions.
+- Handle errors gracefully.
+`;
+
+  // Calculate carbon credits
+  const calculateCarbonCredits = (energyAmount: number): number => {
+    return energyAmount * 0.0005; // 1 kWh = 0.0005 credits
+  };
+
+  // Blockchain transaction
+  const processTransaction = async (transaction: Transaction) => {
+    if (!window.ethereum) {
+      toast.error("MetaMask not detected");
+      return null;
     }
 
     try {
-      // Get the Gemini Pro model
-      console.log('Initializing Gemini Pro model...');
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      await provider.send("eth_requestAccounts", []);
+      const signer = await provider.getSigner();
+      const signerAddress = await signer.getAddress();
+
+      if (signerAddress.toLowerCase() !== homeownerAddress.toLowerCase()) {
+        toast.error("MetaMask wallet does not match homeowner address.");
+        return null;
+      }
+
+      const contract = new ethers.Contract(EnergyLedger.address, EnergyLedger.abi, signer);
+
+      // Convert totalPrice (USD) to wei (ETH equivalent, demo rate: 1 USD = 0.0005 ETH)
+      const ethPrice = ethers.parseEther((transaction.totalPrice * 0.0005).toFixed(18));
+      const kWh = Math.round(transaction.energyAmount);
+      const status = 0; // Pending
+
+      const tx = await contract.addTransaction(transaction.factoryAddress, kWh, ethPrice, status, {
+        value: ethPrice,
+      });
+
+      const receipt = await tx.wait();
+      const txIndex = transactions.length; // Approximate index
+
+      return { hash: tx.hash, id: txIndex };
+    } catch (error) {
+      console.error("Transaction error:", error);
+      toast.error("Failed to process transaction");
+      return null;
+    }
+  };
+
+  const generateResponse = async (userInput: string) => {
+    if (!genAI) {
+      throw new Error("AI is not initialized.");
+    }
+
+    try {
       const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-      console.log('Model initialized successfully');
-      
-      // Combine previous context with new input
       const prompt = [
         systemContext,
-        ...messages.map(m => `${m.role}: ${m.content}`),
-        `user: ${userInput}`
-      ].join('\n');
+        ...messages.map((m) => `${m.role}: ${m.content}`),
+        `user: ${userInput}`,
+      ].join("\n");
 
-      console.log('Generating content...');
-      // Generate content with safety settings
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
-      
+
       if (!text) {
-        throw new Error('Empty response from AI');
+        throw new Error("Empty response from AI");
       }
-      
-      console.log('Response generated successfully');
-      return text;
-    } catch (error) {
-      console.error('Error generating response:', error);
-      if (error instanceof Error) {
-        if (error.message.includes('404')) {
-          console.error('Model error details:', error);
-          throw new Error('AI model not found. Please check your API key and permissions. Model: gemini-pro');
-        } else if (error.message.includes('400')) {
-          console.error('API key error details:', error);
-          throw new Error('Invalid API key. Please check your configuration.');
+
+      const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/);
+      let parsedData: any = null;
+
+      if (jsonMatch && jsonMatch[1]) {
+        try {
+          parsedData = JSON.parse(jsonMatch[1]);
+          if (parsedData.factoryMatches) {
+            parsedData.factoryMatches.forEach((match: FactoryMatch) => {
+              if (
+                !match.name ||
+                !match.distance ||
+                !match.energyDemand ||
+                !match.priceRange ||
+                !match.lossFactor ||
+                !ethers.isAddress(match.walletAddress)
+              ) {
+                throw new Error("Invalid factory match data");
+              }
+            });
+          }
+        } catch (parseError) {
+          console.error("Failed to parse JSON:", parseError);
         }
-        throw error;
       }
-      throw new Error('Failed to generate response');
+
+      return { text, json: parsedData };
+    } catch (error) {
+      console.error("Error generating response:", error);
+      throw new Error("Failed to generate response");
     }
   };
 
@@ -170,21 +381,120 @@ Highlight factory-specific impact (e.g., “Trading with Factory B saves 20% mor
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
-    setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setInput("");
+    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
     setIsLoading(true);
 
     try {
-      const response = await generateResponse(userMessage);
-      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
+      if (!isConnected) {
+        toast.error("Please connect your wallet in the header.");
+        setIsLoading(false);
+        return;
+      }
+      if (connectedAddress.toLowerCase() !== homeownerAddress.toLowerCase()) {
+        toast.error("Connected wallet does not match homeowner address.");
+        setIsLoading(false);
+        return;
+      }
+
+      const { text, json } = await generateResponse(userMessage);
+      setMessages((prev) => [...prev, { role: "assistant", content: text }]);
+
+      if (json) {
+        setJsonData(json);
+        if (json.factoryMatches) {
+          setStage("showing_matches");
+        } else if (json.status === "negotiation_complete") {
+          setStage("confirming");
+        } else if (json.transaction?.status === "pending") {
+          setStage("confirming");
+          if (!ethers.isAddress(json.transaction.factoryAddress)) {
+            setMessages((prev) => [
+              ...prev,
+              { role: "assistant", content: "Invalid factory wallet address." },
+            ]);
+            setIsLoading(false);
+            return;
+          }
+
+          // Calculate carbon credits
+          const carbonCredits = calculateCarbonCredits(json.transaction.energyAmount);
+          const transactionWithCredits = {
+            ...json.transaction,
+            homeownerAddress,
+            carbonCredits,
+          };
+
+          const result = await processTransaction(transactionWithCredits);
+          if (result) {
+            const updatedTransaction = {
+              ...transactionWithCredits,
+              status: "confirmed",
+              transactionId: result.id,
+              transactionHash: result.hash,
+            };
+            setJsonData({ transaction: updatedTransaction });
+            setTransactions((prev) => [...prev, updatedTransaction]);
+            setTotalCarbonCredits((prev) => prev + carbonCredits);
+            setStage("completed");
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "assistant",
+                content: `Success! Your transaction with ${updatedTransaction.factoryName} is confirmed:\n- Energy Sold: ${updatedTransaction.energyAmount} kWh\n- Price: $${updatedTransaction.pricePerKwh}/kWh\n- Total: $${updatedTransaction.totalPrice}\n- Carbon Credits Earned: ${carbonCredits.toFixed(4)}\n- Transaction ID: ${result.id}\n- [View on Etherscan](https://etherscan.io/tx/${result.hash})\n\nYour total carbon credits are now ${totalCarbonCredits + carbonCredits.toFixed(4)}.`,
+              },
+            ]);
+          }
+        }
+      }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to generate response';
+      const errorMessage = error instanceof Error ? error.message : "Failed to generate response";
       toast.error(errorMessage);
-      console.error('Chat error:', error);
+      console.error("Chat error:", error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Transaction history UI with carbon credits
+  const TransactionHistory = () => (
+    <Card className="p-4 mt-4">
+      <h3 className="font-bold">Transaction History</h3>
+      {transactions.length === 0 ? (
+        <p>No transactions yet.</p>
+      ) : (
+        <>
+          <p>Total Carbon Credits: {totalCarbonCredits.toFixed(4)}</p>
+          <ul className="space-y-2">
+            {transactions.map((tx, index) => (
+              <li key={index} className="text-sm">
+                <div>
+                  <strong>{tx.factoryName}</strong>: {tx.energyAmount} kWh @ ${tx.pricePerKwh}/kWh = $
+                  {tx.totalPrice}
+                </div>
+                <div>Status: {tx.status}</div>
+                <div>Carbon Credits: {tx.carbonCredits?.toFixed(4)}</div>
+                {tx.transactionId !== undefined && <div>ID: {tx.transactionId}</div>}
+                {tx.transactionHash && (
+                  <div>
+                    Hash:{" "}
+                    <a
+                      href={`https://etherscan.io/tx/${tx.transactionHash}`}
+                      target="_blank"
+                      className="text-blue-500"
+                    >
+                      {tx.transactionHash.slice(0, 10)}...
+                    </a>
+                  </div>
+                )}
+                <div>Date: {new Date(tx.timestamp).toLocaleString()}</div>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </Card>
+  );
 
   return (
     <>
@@ -201,7 +511,7 @@ Highlight factory-specific impact (e.g., “Trading with Factory B saves 20% mor
           <DialogHeader className="px-4 py-2 border-b">
             <DialogTitle>AI Energy Trading Assistant</DialogTitle>
           </DialogHeader>
-          
+
           <div className="flex-1 overflow-hidden">
             <Card className="h-full border-0 rounded-none">
               <ScrollArea className="h-full pr-4 p-4" ref={scrollAreaRef}>
@@ -209,18 +519,14 @@ Highlight factory-specific impact (e.g., “Trading with Factory B saves 20% mor
                   {messages.map((message, index) => (
                     <div
                       key={index}
-                      className={`flex ${
-                        message.role === 'user' ? 'justify-end' : 'justify-start'
-                      }`}
+                      className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
                     >
                       <div
                         className={`max-w-[80%] p-3 rounded-lg ${
-                          message.role === 'user'
-                            ? 'bg-primary text-primary-foreground'
-                            : 'bg-muted'
+                          message.role === "user" ? "bg-primary text-primary-foreground" : "bg-muted"
                         }`}
                       >
-                        {message.role === 'assistant' ? (
+                        {message.role === "assistant" ? (
                           <ReactMarkdown>{message.content}</ReactMarkdown>
                         ) : (
                           message.content
@@ -236,6 +542,7 @@ Highlight factory-specific impact (e.g., “Trading with Factory B saves 20% mor
                     </div>
                   )}
                 </div>
+                <TransactionHistory />
               </ScrollArea>
             </Card>
           </div>
@@ -250,11 +557,7 @@ Highlight factory-specific impact (e.g., “Trading with Factory B saves 20% mor
                 className="flex-1"
               />
               <Button type="submit" disabled={isLoading || !genAI}>
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  'Send'
-                )}
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send"}
               </Button>
             </form>
           </div>
@@ -262,4 +565,4 @@ Highlight factory-specific impact (e.g., “Trading with Factory B saves 20% mor
       </Dialog>
     </>
   );
-} 
+}
