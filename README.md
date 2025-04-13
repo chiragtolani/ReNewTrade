@@ -109,6 +109,58 @@ ReNewTrade/
 └── styles/              # Tailwind CSS and global styles
 ```
 
+## 📸 Demo 
+
+<div style="display: flex; overflow-x: auto; gap: 20px; padding: 10px;">
+
+  <div style="text-align: center;">
+    <h4>Login</h4>
+    <img src="Demo/1.png" width="200"/>
+  </div>
+
+  <div style="text-align: center;">
+    <h4>Wallet Connection</h4>
+    <img src="Demo/2.png" width="200"/>
+  </div>
+
+  <div style="text-align: center;">
+    <h4>Initiating the AI Agent Coversation </h4>
+    <img src="Demo/3.png" width="200"/>
+  </div>
+
+  <div style="text-align: center;">
+    <h4> AI Agent confirming the deal </h4>
+    <img src="Demo/4.png" width="200"/>
+  </div>
+
+  <div style="text-align: center;">
+    <h4>Verfiy the Deal suggested by the Agent and Initiate Sell</h4>
+    <img src="Demo/5.png" width="200"/>
+  </div>
+
+  <div style="text-align: center;">
+    <h4>Confirm the blockchain transaction</h4>
+    <img src="Demo/6.png" width="200"/>
+  </div>
+
+  <div style="text-align: center;">
+    <h4>The transaction is processed in Sepolia</h4>
+    <img src="Demo/7.png" width="200"/>
+  </div>
+
+  <div style="text-align: center;">
+    <h4>Transaction Log Entry</h4>
+    <img src="Demo/8.png" width="200"/>
+  </div>
+
+    <div style="text-align: center;">
+    <h4>The transaction is visible in the Metamask log as well</h4>
+    <img src="Demo/9.png" width="200"/>
+  </div>
+
+</div>
+
+
 ### 📌 Roadmap
 
 ✅ User portal and login flow
