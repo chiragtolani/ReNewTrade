@@ -127,6 +127,14 @@ ReNewTrade/
 
 🔄 Public beta release
 
+## 🤝 Contributing
+
+We welcome contributions from the community!
+
+```bash
+git checkout -b feature/YourFeatureName
+git commit -m "Add Your Feature"
+git push origin feature/YourFeatureName
 
 
 
