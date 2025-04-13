@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import * as React from "react"
 import { useState, useEffect } from "react"
 import { providers, Contract, utils } from 'ethers'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -22,19 +22,6 @@ interface TradeInterfaceProps {
   availableSurplus: number
   currentRate: number
   bankAccount: string
-}
-
-interface MetaMaskProvider {
-  isMetaMask?: boolean;
-  request: (args: { method: string; params?: any[] }) => Promise<any>;
-  on: (event: string, handler: (accounts: string[]) => void) => void;
-  removeListener: (event: string, handler: (accounts: string[]) => void) => void;
-}
-
-declare global {
-  interface Window {
-    ethereum: any;
-  }
 }
 
 export default function TradeInterface({ onTrade, availableSurplus, currentRate, bankAccount }: TradeInterfaceProps) {
