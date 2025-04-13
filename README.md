@@ -86,3 +86,28 @@ cd ReNewTrade
 ```bash
 npm install
 ```
+### 3. Start the Development Server
+
+```bash
+npm run dev
+```
+### 4.Setup Environment Variables
+```bash
+FIREBASE_API_KEY=your_key
+GEMINI_API_KEY=your_key
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+```
+
+### 📦 Project Structure
+...
+ReNewTrade/
+├── components/          # Reusable React components
+├── pages/               # Next.js route pages
+├── public/              # Static assets
+├── utils/               # AI logic and helpers
+├── smart-contract/      # Solidity contracts and Hardhat setup
+└── styles/              # Tailwind CSS and global styles
+...
+
+
+
