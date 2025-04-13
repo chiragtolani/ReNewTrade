@@ -23,7 +23,15 @@ module.exports = {
         accountsBalance: "1" // This sets 1 ETH as initial balance
       }
     },
-    // Add other networks as needed (e.g., testnet, mainnet)
+    sepolia: {
+      url: process.env.SEPOLIA_HTTP_URL || "https://necessary-orbital-daylight.ethereum-sepolia.quiknode.pro/3e918e1e3a58fe7cd1657f55c227ff78f400a8c6/",
+      // For WebSocket connection, use SEPOLIA_WSS_URL in your frontend code
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+      chainId: 11155111,
+      timeout: 120000, // 2 minutes timeout
+      gas: "auto",
+      gasPrice: "auto"
+    }
   },
   paths: {
     sources: "./contracts",
