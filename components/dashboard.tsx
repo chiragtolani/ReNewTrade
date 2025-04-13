@@ -14,6 +14,7 @@ import TradeInterface from "./trade-interface"
 import TransactionHistory from "./transaction-history"
 import CarbonCredits from "./carbon-credits"
 import WalletInfo from "./wallet-info"
+import EnergyTrade from "./EnergyTrade"
 import { mockEnergyData, mockTransactions } from "@/lib/mock-data"
 import { staggerContainer, cardVariants } from "@/lib/motion"
 import { Zap, BarChart3, RefreshCw, Building, DollarSign, Percent } from "lucide-react"
@@ -48,18 +49,25 @@ export default function Dashboard({ children, activeTab: propActiveTab }: Dashbo
     bankBalance?: number
   } | null>(null)
   const [showInsuranceBanner, setShowInsuranceBanner] = useState(true)
+  const [isClient, setIsClient] = useState(false)
 
   useEffect(() => {
-    // Get user from localStorage
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser)
-      setUser(parsedUser)
-      if (parsedUser.bankBalance) {
-        setBankBalance(parsedUser.bankBalance)
+    setIsClient(true)
+  }, [])
+
+  useEffect(() => {
+    if (isClient) {
+      // Get user from localStorage
+      const storedUser = localStorage.getItem("user")
+      if (storedUser) {
+        const parsedUser = JSON.parse(storedUser)
+        setUser(parsedUser)
+        if (parsedUser.bankBalance) {
+          setBankBalance(parsedUser.bankBalance)
+        }
       }
     }
-  }, [])
+  }, [isClient])
 
   useEffect(() => {
     if (propActiveTab) {
@@ -141,6 +149,23 @@ export default function Dashboard({ children, activeTab: propActiveTab }: Dashbo
       setUtilityFees((prev) => prev + utilityFee)
     }
   }
+
+  const handleEnergyTrade = (transaction: Transaction) => {
+    // Add the new transaction to the list
+    setTransactions([transaction, ...transactions]);
+
+    // Update balances
+    if (transaction.type === "sell") {
+      setBankBalance((prev) => prev + transaction.netAmount);
+      setTodayEarnings((prev) => prev + transaction.netAmount);
+      setUtilityFees((prev) => prev + transaction.utilityFee);
+      // Add carbon credits for selling renewable energy
+      setCarbonCredits((prev) => prev + transaction.amount * 0.1);
+    } else {
+      setBankBalance((prev) => prev - transaction.total);
+      setUtilityFees((prev) => prev + transaction.utilityFee);
+    }
+  };
 
   // Render content based on active tab
   const renderContent = () => {
@@ -271,6 +296,15 @@ export default function Dashboard({ children, activeTab: propActiveTab }: Dashbo
                 </Card>
               </motion.div>
             </div>
+
+            <motion.div
+              className="mt-4"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <EnergyTrade onTransactionComplete={handleEnergyTrade} />
+            </motion.div>
           </div>
         )
       case "trade":

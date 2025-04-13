@@ -1,7 +1,12 @@
-"use client"
-
-import Dashboard from "@/components/dashboard"
+import ClientWrapper from "@/components/client-wrapper"
+import ClientDashboard from "@/components/client-dashboard"
 
 export default function Home() {
-  return <Dashboard activeTab="overview" />
+  return (
+    <ClientWrapper>
+      <div className="flex flex-col gap-4">
+        <ClientDashboard activeTab="overview" />
+      </div>
+    </ClientWrapper>
+  )
 }

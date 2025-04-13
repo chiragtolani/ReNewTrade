@@ -3,14 +3,17 @@ const path = require("path");
 const hre = require("hardhat");
 
 async function main() {
-  console.log("Deploying EnergyTrading contract...");
+  console.log("Deploying EnergyLedger contract...");
   
-  const EnergyTrading = await hre.ethers.getContractFactory("EnergyTrading");
-  const contract = await EnergyTrading.deploy();
-  await contract.deployed();
-
-  const address = contract.address;
-  console.log("Contract deployed to:", address);
+  // Get the contract factory
+  const EnergyLedger = await hre.ethers.getContractFactory("EnergyLedger");
+  console.log("Deploying EnergyLedger...");
+  const contract = await EnergyLedger.deploy();
+  
+  console.log("Contract deployed to:", await contract.getAddress());
+  console.log("Waiting for deployment to be confirmed...");
+  await contract.waitForDeployment();
+  console.log("Deployment confirmed!");
 
   // Create frontend-data directory if it doesn't exist
   const frontendDir = path.join(__dirname, "..", "frontend-data");
@@ -19,27 +22,27 @@ async function main() {
   }
 
   // Get contract ABI
-  const contractArtifact = await hre.artifacts.readArtifact("EnergyTrading");
+  const artifact = await hre.artifacts.readArtifact("EnergyLedger");
   
   const contractData = {
-    address,
-    abi: contractArtifact.abi
+    address: await contract.getAddress(),
+    abi: artifact.abi
   };
 
   // Save contract data for frontend
   fs.writeFileSync(
-    path.join(frontendDir, "EnergyTrading.json"),
+    path.join(frontendDir, "EnergyLedger.json"),
     JSON.stringify(contractData, null, 2)
   );
 
-  console.log("Contract ABI and address saved to frontend-data/EnergyTrading.json");
+  console.log("Contract ABI and address saved to frontend-data/EnergyLedger.json");
 
   // Verify contract on Etherscan (if on a supported network)
-  if (hre.network.name !== "localhost") {
+  if (network.name !== "localhost" && process.env.ETHERSCAN_API_KEY) {
     console.log("Verifying contract on Etherscan...");
     try {
       await hre.run("verify:verify", {
-        address: address,
+        address: await contract.getAddress(),
         constructorArguments: [],
       });
       console.log("Contract verified on Etherscan");
@@ -49,7 +52,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });
