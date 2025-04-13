@@ -116,47 +116,47 @@ ReNewTrade/
 
   <div style="text-align: center;">
     <h4>Login</h4>
-    <img src="./Demo/1.jpg" width="200"/>
+    <img src="./Demo/1.jpg" width="700"/>
   </div>
 
   <div style="text-align: center;">
     <h4>Wallet Connection</h4>
-    <img src="Demo/2.jpg" width="200"/>
+    <img src="Demo/2.jpg" width="700"/>
   </div>
 
   <div style="text-align: center;">
     <h4>Initiating the AI Agent Coversation </h4>
-    <img src="Demo/3.jpg" width="200"/>
+    <img src="Demo/3.jpg" width="700"/>
   </div>
 
   <div style="text-align: center;">
     <h4> AI Agent confirming the deal </h4>
-    <img src="Demo/4.jpg" width="200"/>
+    <img src="Demo/4.jpg" width="700"/>
   </div>
 
   <div style="text-align: center;">
     <h4>Verfiy the Deal suggested by the Agent and Initiate Sell</h4>
-    <img src="Demo/5.jpg" width="200"/>
+    <img src="Demo/5.jpg" width="700"/>
   </div>
 
   <div style="text-align: center;">
     <h4>Confirm the blockchain transaction</h4>
-    <img src="Demo/6.jpg" width="200"/>
+    <img src="Demo/6.jpg" width="700"/>
   </div>
 
   <div style="text-align: center;">
     <h4>The transaction is processed in Sepolia</h4>
-    <img src="Demo/7.jpg" width="200"/>
+    <img src="Demo/7.jpg" width="700"/>
   </div>
 
   <div style="text-align: center;">
     <h4>Transaction Log Entry</h4>
-    <img src="Demo/8.jpg" width="200"/>
+    <img src="Demo/8.jpg" width="700"/>
   </div>
 
     <div style="text-align: center;">
     <h4>The transaction is visible in the Metamask log as well</h4>
-    <img src="Demo/9.jpg" width="200"/>
+    <img src="Demo/9.jpg" width="700"/>
   </div>
 
 </div>
