@@ -6,7 +6,7 @@ Check out the deployed app here: [ReNewTrade](https://v0-p2-p-renewable-energy-p
 
 **Empowering Households to Monetize Surplus Solar Energy Through AI-Powered Energy Trading and Carbon Credits**
 
-ReNewTrade is an innovative decentralized platform that enables individuals generating **surplus solar energy at home** to trade their excess energy with **factories and companies**, while also earning **carbon credits** and **monetary rewards**. Our platform uses an **AI negotiation agent** to help users find the best offers, automate deals, and log everything transparently on a portal — with future blockchain integration planned.
+ReNewTrade is an innovative decentralized platform that enables individuals generating **surplus solar energy at home** to trade their excess energy with **factories and companies**, while also earning **carbon credits** and **monetary rewards**. Our platform uses an **AI negotiation agent** to help users find the best offers, automate deals, and log everything transparently on a portal — with future blockchain integration planned (Currently the blockchain is setup locally)
 
 
 ---
@@ -35,7 +35,7 @@ ReNewTrade is an innovative decentralized platform that enables individuals gene
   Users automatically earn carbon points for each transaction, which can be **redeemed for cash or rewards** *(feature coming soon)*.
 
 - 🔗 **Blockchain Integration** *(Upcoming)*  
-  Future-ready plans to implement smart contracts on the Ethereum Sepolia testnet for secure and tamper-proof transactions.
+  Currently the blockchain is setup locally but it is catered to be implemented with smart contracts on the Ethereum Sepolia testnet for secure and tamper-proof transactions.
 
 ---
 
