@@ -1,6 +1,6 @@
 ## 🌐 Live Demo
 
-Check out the deployed app here: [ReNewTrade](https://v0-p2-p-renewable-energy-proj-git-41c696-chiragtolanis-projects.vercel.app)
+Check out the deployed app here: To be added soon! <!-- [ReNewTrade](https://v0-p2-p-renewable-energy-proj-git-41c696-chiragtolanis-projects.vercel.app) -->
 
 # ⚡ ReNewTrade 🌿
 
