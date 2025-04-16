@@ -159,7 +159,7 @@ ReNewTrade/
     <img src="Demo/8.jpg" width="700"/>
   </div>
 
-    <div style="text-align: center;">
+  <div style="text-align: center;">
     <h4>The transaction is visible in the Metamask log as well</h4>
     <img src="Demo/9.jpg" width="700"/>
   </div>
