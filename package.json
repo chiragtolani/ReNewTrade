@@ -96,6 +96,11 @@
     "web3": "^1.10.0",
     "zod": "^3.24.1"
   },
+  "pnpm": {
+    "overrides": {
+      "three-stdlib": ">=2.35.16"
+    }
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^5.0.0",
     "@nomiclabs/hardhat-ethers": "^2.0.0",
